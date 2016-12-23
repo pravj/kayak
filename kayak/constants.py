@@ -36,6 +36,10 @@ RETWEET_THRESHOLD = 1
 # URL for Twitter search API
 SEARCH_API_URL = 'https://api.twitter.com/1.1/search/tweets.json'
 
+# Keys to look for in 'status' response
+# in case of breaking changes in Twitter API results
+TWEET_TEXT_KEY = 'text'
+TWEET_ID_KEY = 'id'
 TWEET_RETWEET_KEY = 'retweet_count'
 
 
@@ -56,4 +60,6 @@ __all__ = [
 			HASHTAG,
 			RETWEET_THRESHOLD,
 			SEARCH_API_URL,
+			TWEET_TEXT_KEY,
+			TWEET_ID_KEY,
 			TWEET_RETWEET_KEY]
