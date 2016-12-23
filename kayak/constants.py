@@ -11,7 +11,7 @@ AUTH_HEADER_PREFIX = 'Basic'
 BEARER_AUTH_HEADER_PREFIX = 'Bearer'
 
 # request attributes
-REQ_USER_AGENT = 'Kayak@hackpravj-v1.0.0'
+REQ_USER_AGENT = 'Kayak@hackpravj-v0.0.9'
 REQ_ENCODING = 'gzip'
 REQ_CONTENT_TYPE = 'application/x-www-form-urlencoded;charset=UTF-8'
 REQ_DATA = {'grant_type': 'client_credentials'}

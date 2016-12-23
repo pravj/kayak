@@ -149,7 +149,7 @@ class KayakClientResponse(object):
 class KayakClientResponseIterator(object):
     """
     Returns iterator for Twitter API responses.
-    Used to fetch older tweets per iteration.
+    Used to fetch new or old tweets per iteration.
     """
 
     def __init__(self, bearer_token, older_tweets):
@@ -165,17 +165,22 @@ class KayakClientResponseIterator(object):
         return self
 
     def next(self):
+        # determine the suitable variable (since_id / max_id)
+        # to use as request parameter using the direction
         _id = self.max_id if self.older_tweets else self.since_id
         _param_key = constants.TWEET_MAX_ID if self.older_tweets else constants.TWEET_SINCE_ID
 
+        # initial execution
         if _id is None:
             res = _make_request(self.bearer_token)
         else:
+            # using the suitable varialbe value saved from past executions
             params = {_param_key: _id}
             res = _make_request(self.bearer_token, extra_params=params)
 
         kayak_client_res = KayakClientResponse(res)
 
+        # update the suitable limiting (first or last) id variable
         if self.older_tweets:
             self.max_id = kayak_client_res.last_tweet_id
         else:
