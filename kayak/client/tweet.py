@@ -27,7 +27,7 @@ class KayakTweet(object):
         Update the custom attributes (text, id, retweets) of a tweet entity.
         """
 
-        self.text = self.status[constants.TWEET_TEXT_KEY]
+        self.text = self.status[constants.TWEET_TEXT_KEY].encode('utf-8')
         self.id = self.status[constants.TWEET_ID_KEY]
         self.retweets = self.status[constants.TWEET_RETWEET_KEY]
 

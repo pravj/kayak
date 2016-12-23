@@ -4,9 +4,9 @@
 This module manages the authentication process for the client.
 """
 
-import requests as r
 from base64 import b64encode
 from kayak import constants
+import kayak.utils as utils
 
 
 class KayakAuth(object):
@@ -31,7 +31,7 @@ class KayakAuth(object):
         headers = self._prepare_headers()
         payload = constants.REQ_DATA
 
-        response = self._make_request(
+        response = utils.make_api_post_request(
             constants.REQUEST_TOKEN_URL, headers, payload)
 
         if (self._verify_response(response)):
@@ -48,7 +48,7 @@ class KayakAuth(object):
         payload = {constants.TOKEN_KEY: bearer_token}
 
         try:
-            response = self._make_request(
+            response = utils.make_api_post_request(
                 constants.INVALIDATE_TOKEN_URL, headers, payload)
         except Exception, e:
             return False
@@ -76,21 +76,6 @@ class KayakAuth(object):
             constants.AUTH_HEADER_PREFIX, encoded_creds.decode('utf-8'))
 
         return headers
-
-    def _make_request(self, url, headers, payload):
-        """
-        Returns the response for a POST request
-        made at an endpoint with given request attributes.
-
-        :return: Response object for the POST request.
-        """
-
-        try:
-            res = r.post(url, headers=headers, data=payload)
-        except Exception, e:
-            raise e
-        else:
-            return res
 
     def _verify_response(self, res):
         """

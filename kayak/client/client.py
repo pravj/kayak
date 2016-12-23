@@ -5,34 +5,10 @@ This module implements the client's public and private interface.
 """
 
 import os
-import urllib
-import requests as r
 from kayak import constants
 from kayak.auth import KayakAuth
 from tweet import KayakTweet
-
-
-def _make_request(bearer_token, extra_params=None):
-    headers = {}
-    headers['Authorization'] = '{0} {1}'.format(constants.BEARER_AUTH_HEADER_PREFIX, bearer_token)
-
-    # maximum number of tweets returned by Twitter API per page
-    n = 100
-
-    # %escape the hashtag value to prevent duplication as a URI fragment
-    params = {'count': n, 'q': urllib.quote(constants.HASHTAG)}
-
-    # append additional request parameters
-    if extra_params is not None:
-        for k in extra_params:
-            params[k] = extra_params[k]
-
-    try:
-        res = r.get(constants.SEARCH_API_URL, headers=headers, params=params)
-    except Exception, e:
-        raise e
-    else:
-        return res
+import kayak.utils as utils
 
 
 class KayakClient(object):
@@ -113,7 +89,7 @@ class KayakClientResponse(object):
         Validates if the request was successful.
         """
 
-        if (response.status_code == r.codes.ok):
+        if utils.is_status_ok(response):
             self.statuses = response.json()['statuses']
 
             try:
@@ -131,7 +107,7 @@ class KayakClientResponse(object):
         Checks if a tweet object matches the given criteria or not.
         """
 
-        # TODO: use 'filter'(built-in) based implementation 
+        # TODO: use 'filter'(built-in) based implementation
 
         _filtered_tweets = []
 
@@ -172,11 +148,12 @@ class KayakClientResponseIterator(object):
 
         # initial execution
         if _id is None:
-            res = _make_request(self.bearer_token)
+            res = utils.make_api_search_request(self.bearer_token)
         else:
             # using the suitable varialbe value saved from past executions
             params = {_param_key: _id}
-            res = _make_request(self.bearer_token, extra_params=params)
+            res = utils.make_api_search_request(
+                self.bearer_token, extra_params=params)
 
         kayak_client_res = KayakClientResponse(res)
 
