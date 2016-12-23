@@ -30,8 +30,13 @@ TOKEN_KEY = 'access_token'
 # hashtag to look for
 HASHTAG = '#custserv'
 
+# minimum number of re-tweets required
+RETWEET_THRESHOLD = 1
+
 # URL for Twitter search API
 SEARCH_API_URL = 'https://api.twitter.com/1.1/search/tweets.json'
+
+TWEET_RETWEET_KEY = 'retweet_count'
 
 
 __all__ = [
@@ -49,4 +54,6 @@ __all__ = [
 			VERIFICATION_VALUE,
 			TOKEN_KEY,
 			HASHTAG,
-			SEARCH_API_URL]
+			RETWEET_THRESHOLD,
+			SEARCH_API_URL,
+			TWEET_RETWEET_KEY]

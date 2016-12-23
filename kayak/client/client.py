@@ -60,9 +60,12 @@ class KayakClient(object):
         # update the token
         self.bearer_token = self.auth.authenticate()
 
-    def _make_request(self, n):
+    def _make_request(self):
         headers = {}
         headers['Authorization'] = '{0} {1}'.format(constants.BEARER_AUTH_HEADER_PREFIX, self.bearer_token)
+
+        # maximum number of tweets returned by Twitter API per page
+        n = 100
 
         params = {'count': n, 'q': urllib.quote(constants.HASHTAG)}
 
@@ -73,6 +76,49 @@ class KayakClient(object):
         else:
             return res
 
-    def get_tweets(self, n=15):
-        res = self._make_request(n)
-        return res
+    def get_tweets(self):
+        """
+        Collect tweets after filtering them
+        """
+
+        res = self._make_request()
+        return KayakClientResponse(res).statuses
+
+
+class KayakClientResponse(object):
+    """
+    kayak.client.KayakClientResponse
+    """
+
+    def __init__(self, response):
+        self.response = response
+        self.statuses = None
+
+        self._validate_response(self.response)
+        self._filter_tweets()
+
+    def _validate_response(self, response):
+        """
+        Validates if the request was successful.
+        """
+
+        if (response.status_code == r.codes.ok):
+            self.statuses = response.json()['statuses']
+            return
+
+        raise Exception
+
+    def _filter_tweets(self):
+        """
+        Checks if a tweet object matches the given criteria or not.
+        """
+
+        # Because a one-liner wasn't looking good
+
+        _filtered_tweets = []
+
+        for status in self.statuses:
+            if (constants.TWEET_RETWEET_KEY >= constants.RETWEET_THRESHOLD):
+                _filtered_tweets.append(status)
+
+        self.statuses = _filtered_tweets
