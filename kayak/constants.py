@@ -42,6 +42,9 @@ TWEET_TEXT_KEY = 'text'
 TWEET_ID_KEY = 'id'
 TWEET_RETWEET_KEY = 'retweet_count'
 
+TWEET_SINCE_ID = 'since_id'
+TWEET_MAX_ID = 'max_id'
+
 
 __all__ = [
 			KAYAK_KEY,
@@ -62,4 +65,5 @@ __all__ = [
 			SEARCH_API_URL,
 			TWEET_TEXT_KEY,
 			TWEET_ID_KEY,
-			TWEET_RETWEET_KEY]
+			TWEET_RETWEET_KEY,
+			TWEET_SINCE_ID]

@@ -11,6 +11,30 @@ import urllib
 import requests as r
 from kayak import constants
 from kayak.auth import KayakAuth
+from tweet import KayakTweet
+
+
+def _make_request(bearer_token, extra_params=None):
+    headers = {}
+    headers['Authorization'] = '{0} {1}'.format(constants.BEARER_AUTH_HEADER_PREFIX, bearer_token)
+
+    # maximum number of tweets returned by Twitter API per page
+    n = 100
+
+    # %escape the hashtag value to prevent duplication as a URI fragment
+    params = {'count': n, 'q': urllib.quote(constants.HASHTAG)}
+
+    # append additional request parameters
+    if extra_params is not None:
+        for k in extra_params:
+            params[k] = extra_params[k]
+
+    try:
+        res = r.get(constants.SEARCH_API_URL, headers=headers, params=params)
+    except Exception, e:
+        raise e
+    else:
+        return res
 
 
 class KayakClient(object):
@@ -28,10 +52,6 @@ class KayakClient(object):
 
         # Authentication object associated with the client
         self.auth = None
-
-        # used to work with Twitter timelines (continuously populated tweets)
-        # https://dev.twitter.com/rest/public/timelines
-        self.since_id = None
 
         self._check_credentials()
 
@@ -64,46 +84,12 @@ class KayakClient(object):
         # update the token
         self.bearer_token = self.auth.authenticate()
 
-    def _make_request(self, extra_params=None):
-        headers = {}
-        headers['Authorization'] = '{0} {1}'.format(constants.BEARER_AUTH_HEADER_PREFIX, self.bearer_token)
-
-        # maximum number of tweets returned by Twitter API per page
-        n = 100
-
-        # %escape the hashtag value to prevent duplication as a URI fragment
-        params = {'count': n, 'q': urllib.quote(constants.HASHTAG)}
-
-        # append additional request parameters
-        if extra_params is not None:
-            for k in extra_params:
-                params[k] = extra_params[k]
-
-        try:
-            res = r.get(constants.SEARCH_API_URL, headers=headers, params=params)
-        except Exception, e:
-            raise e
-        else:
-            return res
-
-    def get_tweets(self):
+    def get_tweets(self, older_tweets=True):
         """
-        Collect newer tweets since last execution
+        Returns an iterator for Twitter API responses.
         """
 
-        # initial execution of the client
-        if self.since_id is None:
-            res = self._make_request()
-        else:
-            params = {'since_id': self.since_id}
-            res = self._make_request(extra_params=params)
-
-        kayak_client_res = KayakClientResponse(res)
-
-        # update 'since_id' for future use
-        self.since_id = kayak_client_res.first_tweet_id
-
-        return iter(kayak_client_res)
+        return KayakClientResponseIterator(self.bearer_token, older_tweets)
 
 
 class KayakClientResponse(object):
@@ -115,11 +101,12 @@ class KayakClientResponse(object):
         self.response = response
         self.statuses = None
 
-        # ID for the first tweet (unfiltered) in response
+        # ID for the first and last tweets (unfiltered) in response
         self.first_tweet_id = None
+        self.last_tweet_id = None
 
         self._validate_response(self.response)
-        self._filter_tweets()
+        self._filter_response()
 
     def _validate_response(self, response):
         """
@@ -134,16 +121,17 @@ class KayakClientResponse(object):
             except IndexError:
                 raise Exception('no new tweets yet')
             else:
+                self.last_tweet_id = self.statuses[-1]['id']
                 return
 
         raise Exception
 
-    def _filter_tweets(self):
+    def _filter_response(self):
         """
         Checks if a tweet object matches the given criteria or not.
         """
 
-        # Because a one-liner wasn't looking good
+        # TODO: use 'filter'(built-in) based implementation 
 
         _filtered_tweets = []
 
@@ -158,31 +146,39 @@ class KayakClientResponse(object):
             yield KayakTweet(status)
 
 
-class KayakTweet(object):
+class KayakClientResponseIterator(object):
     """
-    kayak.client.KayakTweet
-
-    Custom representation of a Tweet object.
+    Returns iterator for Twitter API responses.
+    Used to fetch older tweets per iteration.
     """
 
-    def __init__(self, status):
-        self.status = status
+    def __init__(self, bearer_token, older_tweets):
+        self.older_tweets = older_tweets
+        self.bearer_token = bearer_token
 
-        self.text = None
-        self.id = None
-        self.retweets = None
+        # to work with Twitter timelines (continuously populated tweets)
+        # https://dev.twitter.com/rest/public/timelines
+        self.since_id = None
+        self.max_id = None
 
-        self._update_values()
+    def __iter__(self):
+        return self
 
-    def _update_values(self):
-        self.text = self.status[constants.TWEET_TEXT_KEY]
-        self.id = self.status[constants.TWEET_ID_KEY]
-        self.retweets = self.status[constants.TWEET_RETWEET_KEY]
+    def next(self):
+        _id = self.max_id if self.older_tweets else self.since_id
+        _param_key = constants.TWEET_MAX_ID if self.older_tweets else constants.TWEET_SINCE_ID
 
-    def __repr__(self):
-        """
-        Utilizes string representation data method (__repr__)
-        so that a 'KayakTweet' object instance can be used as a string.
-        """
+        if _id is None:
+            res = _make_request(self.bearer_token)
+        else:
+            params = {_param_key: _id}
+            res = _make_request(self.bearer_token, extra_params=params)
 
-        return self.text
+        kayak_client_res = KayakClientResponse(res)
+
+        if self.older_tweets:
+            self.max_id = kayak_client_res.last_tweet_id
+        else:
+            self.since_id = kayak_client_res.first_tweet_id
+
+        return iter(kayak_client_res)
