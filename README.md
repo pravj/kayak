@@ -1,2 +1,2 @@
 # kayak
-Customizable Twitter client to collect tweets matching certain criteria
+A customizable Twitter client to collect tweets matching certain criteria

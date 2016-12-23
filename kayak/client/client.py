@@ -29,6 +29,10 @@ class KayakClient(object):
         # Authentication object associated with the client
         self.auth = None
 
+        # used to work with Twitter timelines (continuously populated tweets)
+        # https://dev.twitter.com/rest/public/timelines
+        self.since_id = None
+
         self._check_credentials()
 
     # using an underscore as prefix to indicate a (semi)private method
@@ -60,14 +64,20 @@ class KayakClient(object):
         # update the token
         self.bearer_token = self.auth.authenticate()
 
-    def _make_request(self):
+    def _make_request(self, extra_params=None):
         headers = {}
         headers['Authorization'] = '{0} {1}'.format(constants.BEARER_AUTH_HEADER_PREFIX, self.bearer_token)
 
         # maximum number of tweets returned by Twitter API per page
         n = 100
 
+        # %escape the hashtag value to prevent duplication as a URI fragment
         params = {'count': n, 'q': urllib.quote(constants.HASHTAG)}
+
+        # append additional request parameters
+        if extra_params is not None:
+            for k in extra_params:
+                params[k] = extra_params[k]
 
         try:
             res = r.get(constants.SEARCH_API_URL, headers=headers, params=params)
@@ -78,11 +88,22 @@ class KayakClient(object):
 
     def get_tweets(self):
         """
-        Collect tweets after filtering them
+        Collect newer tweets since last execution
         """
 
-        res = self._make_request()
-        return iter(KayakClientResponse(res))
+        # initial execution of the client
+        if self.since_id is None:
+            res = self._make_request()
+        else:
+            params = {'since_id': self.since_id}
+            res = self._make_request(extra_params=params)
+
+        kayak_client_res = KayakClientResponse(res)
+
+        # update 'since_id' for future use
+        self.since_id = kayak_client_res.first_tweet_id
+
+        return iter(kayak_client_res)
 
 
 class KayakClientResponse(object):
@@ -94,6 +115,9 @@ class KayakClientResponse(object):
         self.response = response
         self.statuses = None
 
+        # ID for the first tweet (unfiltered) in response
+        self.first_tweet_id = None
+
         self._validate_response(self.response)
         self._filter_tweets()
 
@@ -104,7 +128,13 @@ class KayakClientResponse(object):
 
         if (response.status_code == r.codes.ok):
             self.statuses = response.json()['statuses']
-            return
+
+            try:
+                self.first_tweet_id = self.statuses[0]['id']
+            except IndexError:
+                raise Exception('no new tweets yet')
+            else:
+                return
 
         raise Exception
 
