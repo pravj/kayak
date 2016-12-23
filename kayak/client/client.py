@@ -118,7 +118,7 @@ class KayakClientResponse(object):
         _filtered_tweets = []
 
         for status in self.statuses:
-            if (constants.TWEET_RETWEET_KEY >= constants.RETWEET_THRESHOLD):
+            if (status[constants.TWEET_RETWEET_KEY] >= constants.RETWEET_THRESHOLD):
                 _filtered_tweets.append(status)
 
         self.statuses = _filtered_tweets
