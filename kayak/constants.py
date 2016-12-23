@@ -42,6 +42,8 @@ TWEET_TEXT_KEY = 'text'
 TWEET_ID_KEY = 'id'
 TWEET_RETWEET_KEY = 'retweet_count'
 
+# special parameters to work with Twitter timelines
+# https://dev.twitter.com/rest/public/timelines
 TWEET_SINCE_ID = 'since_id'
 TWEET_MAX_ID = 'max_id'
 

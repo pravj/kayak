@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-kayak.auth
-
-This module manages the client authentication
+This module manages the authentication process for the client.
 """
 
 import requests as r
@@ -13,9 +11,7 @@ from kayak import constants
 
 class KayakAuth(object):
     """
-    kayak.auth.KayakAuth
-
-    Authentication class for the KayakClient.
+    Base authentication class for the KayakClient.
 
     It uses the 'application-only authentication flow' of Twitter API.
     https://dev.twitter.com/oauth/application-only
@@ -27,7 +23,9 @@ class KayakAuth(object):
 
     def authenticate(self):
         """
-        Returns the 'Bearer' token after successful authentication
+        Returns the 'Bearer' token after a successful authentication.
+
+        :return (str): Bearer token to use in authorization header.
         """
 
         headers = self._prepare_headers()
@@ -42,6 +40,8 @@ class KayakAuth(object):
     def invalidate_token(self, bearer_token):
         """
         Returns True if the 'Bearer' token is successfully invalidated.
+
+        :return (bool): If the token was invalidated or not.
         """
 
         headers = self._prepare_headers()
@@ -57,8 +57,10 @@ class KayakAuth(object):
 
     def _prepare_headers(self):
         """
-        Prepare request headers according to the
+        Returns request headers needed for the
         'application-only authentication flow' instructed by Twitter
+
+        :return (dict): Dictionary containing request headers.
         """
 
         encoded_key = self.key.encode('utf-8')
@@ -77,7 +79,10 @@ class KayakAuth(object):
 
     def _make_request(self, url, headers, payload):
         """
-        Makes a POST request at an endpoint with given request attributes
+        Returns the response for a POST request
+        made at an endpoint with given request attributes.
+
+        :return: Response object for the POST request.
         """
 
         try:
@@ -89,7 +94,9 @@ class KayakAuth(object):
 
     def _verify_response(self, res):
         """
-        Verify that the response follows the Twitter guidelines
+        Returns that the response follows the Twitter guidelines or not.
+
+        :return (bool): If the response is valid or not.
         """
 
         if (res.json()[constants.VERIFICATION_KEY] == constants.VERIFICATION_VALUE):
