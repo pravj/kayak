@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-kayak.client
-
-This module implements the client interface
+This module implements the client's public and private interface.
 """
 
 import os
@@ -39,7 +37,7 @@ def _make_request(bearer_token, extra_params=None):
 
 class KayakClient(object):
     """
-    kayak.client.KayakClient
+    Base class for kayak client
     """
 
     def __init__(self):
@@ -62,8 +60,6 @@ class KayakClient(object):
         'Consumer Secret' are available as 'environment variables' or not.
 
         Invokes the authentication process if the credentials are available.
-
-        :raises: Error if they are unavailable
         """
 
         try:
@@ -86,7 +82,11 @@ class KayakClient(object):
 
     def get_tweets(self, older_tweets=True):
         """
-        Returns an iterator for Twitter API responses.
+        Returns an iterator for Twitter API responses (tweet entities).
+
+        :param (bool) older_tweets:
+        If True (default), it will return the iterator containing older tweets.
+        If False, it will return newer tweets on each iteration.
         """
 
         return KayakClientResponseIterator(self.bearer_token, older_tweets)
@@ -94,7 +94,7 @@ class KayakClient(object):
 
 class KayakClientResponse(object):
     """
-    kayak.client.KayakClientResponse
+    Base class to represent client response.
     """
 
     def __init__(self, response):
@@ -148,8 +148,8 @@ class KayakClientResponse(object):
 
 class KayakClientResponseIterator(object):
     """
-    Returns iterator for Twitter API responses.
-    Used to fetch new or old tweets per iteration.
+    Class provides response iterator for Twitter API responses.
+    Can be used to fetch new or old tweets per iteration.
     """
 
     def __init__(self, bearer_token, older_tweets):
