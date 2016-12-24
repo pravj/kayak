@@ -39,13 +39,17 @@ It will make the package available in your local environment.
 The package exports **KayakClient** class to use, it defines the following method.
 
 ```
-get_tweets(self, older_tweets=True)
+get_tweets(search_query, older_tweets=True)
     Returns an iterator for Twitter API responses (tweet entities).
-      
+
     :param (str) search_query: Search query operator to use.
+
+    :param (int) minimum_retweet: Number of retweets (Default 1)
+        a tweet should have at least.
+
     :param (bool) older_tweets:
-    If True (default), it will return the iterator containing older tweets.
-    If False, it will return newer tweets on each iteration.
+        If True (default), it will return the iterator with older tweets.
+        If False, it will return newer tweets on each iteration.
 ```
 
 Create a client instance.
@@ -61,7 +65,12 @@ client = KayakClient()
 ### To collect old tweets (that have been created in past)
 
 ```python
-old_tweets_iterator = client.get_tweets('#custserv')
+search_query = '#custserv'
+
+# Similarly, if you want tweets mentioning Twitter account '@potus'
+# search_query = '@potus'
+
+old_tweets_iterator = client.get_tweets(search_query, minimum_retweet=2)
 
 for tweets in old_tweets_iterator:
 	for tweet in tweets:
@@ -74,13 +83,12 @@ for tweets in old_tweets_iterator:
 ### To collect new tweets (as they are being created continuously)
 
 ```python
+# Ideally, to avoid raising Exception
+# one should wait in between successive iterations.
+# So that we don't end up having no new tweets.
 import time
 
-new_tweets_iterator = client.get_tweets('custserv', older_tweets=False)
-
-# Ideally, to avoid raising Exception
-# one should wait in between successive iterations
-# so that we don't end up having no new tweets.
+new_tweets_iterator = client.get_tweets('#custserv', older_tweets=False)
 
 while True:
 	new_tweets = new_tweets_iterator.next()
@@ -97,6 +105,8 @@ while True:
 This version of *kayak* will look for tweets having more than 1 retweets.
 
 #### Custom Filter Function
+
+
 
 --
 

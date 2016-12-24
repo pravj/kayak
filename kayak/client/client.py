@@ -56,20 +56,27 @@ class KayakClient(object):
         # update the token
         self.bearer_token = self.auth.authenticate()
 
-    def get_tweets(self, search_query, older_tweets=True):
+    def get_tweets(self, search_query, minimum_retweet=1, older_tweets=True):
         """
         Returns an iterator for Twitter API responses (tweet entities).
 
         :param (str) search_query: Search query operator to use.
+
+        :param (int) minimum_retweet: Number of retweets
+            a tweet should have at least.
+
         :param (bool) older_tweets:
-        If True (default), it will return the iterator containing older tweets.
-        If False, it will return newer tweets on each iteration.
+            If True (default), it will return the iterator with older tweets.
+            If False, it will return newer tweets on each iteration.
         """
 
         if type(search_query) is not str:
             raise TypeError('search_query should be a string')
 
-        return KayakClientResponseIterator(self.bearer_token, search_query, older_tweets)
+        if type(minimum_retweet) is not int:
+            raise TypeError('minimum_retweet should be an int')
+
+        return KayakClientResponseIterator(self.bearer_token, search_query, minimum_retweet, older_tweets)
 
 
 class KayakClientResponseIterator(object):
@@ -78,10 +85,11 @@ class KayakClientResponseIterator(object):
     Can be used to fetch new or old tweets per iteration.
     """
 
-    def __init__(self, bearer_token, search_query, older_tweets):
+    def __init__(self, bearer_token, search_query, minimum_retweet, older_tweets):
         self.bearer_token = bearer_token
 
         self.search_query = search_query
+        self.minimum_retweet = minimum_retweet
         self.older_tweets = older_tweets
 
         # to work with Twitter timelines (continuously populated tweets)
@@ -107,7 +115,7 @@ class KayakClientResponseIterator(object):
             res = utils.make_api_search_request(
                 self.bearer_token, self.search_query, extra_params=params)
 
-        kayak_client_res = KayakClientResponse(res)
+        kayak_client_res = KayakClientResponse(res, self.minimum_retweet)
 
         # update the suitable limiting (first or last) id variable
         if self.older_tweets:
@@ -123,8 +131,10 @@ class KayakClientResponse(object):
     Base class to represent and manipulate client response.
     """
 
-    def __init__(self, response):
+    def __init__(self, response, minimum_retweet):
         self.response = response
+        self.minimum_retweet = minimum_retweet
+
         self.statuses = None
 
         # ID for the first and last tweets (unfiltered) in response
@@ -157,7 +167,10 @@ class KayakClientResponse(object):
         Checks if a tweet object matches the given criteria or not.
         """
 
-        self.statuses = filter(lambda x: x[constants.TWEET_RETWEET_KEY] >= constants.RETWEET_THRESHOLD, self.statuses)
+        def filter_func(l):
+            return l[constants.TWEET_RETWEET_KEY] >= self.minimum_retweet
+
+        self.statuses = filter(filter_func, self.statuses)
 
     def __iter__(self):
         for status in self.statuses:

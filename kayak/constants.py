@@ -27,9 +27,6 @@ VERIFICATION_VALUE = 'bearer'
 # key name associated with the token
 TOKEN_KEY = 'access_token'
 
-# minimum number of re-tweets required
-RETWEET_THRESHOLD = 1
-
 # URL for Twitter search API
 SEARCH_API_URL = 'https://api.twitter.com/1.1/search/tweets.json'
 
@@ -59,7 +56,6 @@ __all__ = [
     VERIFICATION_KEY,
     VERIFICATION_VALUE,
     TOKEN_KEY,
-    RETWEET_THRESHOLD,
     SEARCH_API_URL,
     TWEET_TEXT_KEY,
     TWEET_ID_KEY,
