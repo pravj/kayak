@@ -65,5 +65,26 @@ def is_status_ok(res):
 
     return res.status_code == r.codes.ok
 
+def is_str(obj):
+    """
+    Check is an object is string.
+    :return (bool): True if the object is string.
+    """
 
-__all__ = ['make_api_search_request', 'make_api_post_request', 'is_status_ok']
+    return isinstance(obj, str)
+
+def is_int(obj):
+    """
+    Check is an object is integer.
+    :return (bool): True if the object is integer.
+    """
+
+    return isinstance(obj, int)
+
+
+__all__ = [
+            'make_api_search_request',
+            'make_api_post_request',
+            'is_status_ok',
+            'is_str',
+            'is_int']

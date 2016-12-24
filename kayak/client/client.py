@@ -70,10 +70,10 @@ class KayakClient(object):
             If False, it will return newer tweets on each iteration.
         """
 
-        if type(search_query) is not str:
+        if not utils.is_str(search_query):
             raise TypeError('search_query should be a string')
 
-        if type(minimum_retweet) is not int:
+        if not utils.is_int(minimum_retweet):
             raise TypeError('minimum_retweet should be an int')
 
         # number retweets should be positive
