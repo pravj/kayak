@@ -58,7 +58,7 @@ class KayakClient(object):
 
     def get_tweets(self, search_query, minimum_retweet=1, older_tweets=True):
         """
-        Returns an iterator for Twitter API responses (tweet entities).
+        Returns an iterator for Twitter API responses (tweet entities i.e. KayakTweet).
 
         :param (str) search_query: Search query operator to use.
 

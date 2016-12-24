@@ -120,7 +120,7 @@ while True:
 
 #### Custom Filter Function
 
-[TODO](https://github.com/pravj/kayak/blob/master/TODO.md)
+[External Filteration using Decorators : under exploration](https://github.com/pravj/kayak/tree/external-filteration-using-decorators)
 
 --
 
