@@ -54,9 +54,9 @@ get_tweets(search_query, minimum_retweet=1, older_tweets=True)
 
 The class **KayakTweet** provides following variables of a tweet.
 
-* text : Tweet text
-* id : ID of the Tweet
-* retweets : Number of retweets
+* **text** : Tweet text
+* **id** : ID of the Tweet
+* **retweets** : Number of retweets
 
 ```
 class KayakTweet(object):

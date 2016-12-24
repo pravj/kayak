@@ -76,6 +76,9 @@ class KayakClient(object):
         if type(minimum_retweet) is not int:
             raise TypeError('minimum_retweet should be an int')
 
+        # number retweets should be positive
+        minimum_retweet = 1 if minimum_retweet <= 0 else minimum_retweet
+
         return KayakClientResponseIterator(self.bearer_token, search_query, minimum_retweet, older_tweets)
 
 
