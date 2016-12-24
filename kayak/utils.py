@@ -9,10 +9,13 @@ import requests as r
 from kayak import constants
 
 
-def make_api_search_request(bearer_token, extra_params=None):
+def make_api_search_request(bearer_token, search_query, extra_params=None):
     """
     Makes a GET request to Twitter Search API endpoint
     with given request parameters.
+
+    :param (str) bearer_token: Bearer token to use in authorization headers.
+    :param (str) search_query: Search API query string.
 
     :return: Response object for the GET request.
     """
@@ -23,8 +26,8 @@ def make_api_search_request(bearer_token, extra_params=None):
     # maximum number of tweets returned by Twitter API per page
     n = 100
 
-    # %escape the hashtag value to prevent duplication as a URI fragment
-    params = {'count': n, 'q': urllib.quote(constants.HASHTAG)}
+    # %escape the query value
+    params = {'count': n, 'q': urllib.quote(search_query)}
 
     # append additional request parameters
     if extra_params is not None:

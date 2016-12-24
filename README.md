@@ -42,6 +42,7 @@ The package exports **KayakClient** class to use, it defines the following metho
 get_tweets(self, older_tweets=True)
     Returns an iterator for Twitter API responses (tweet entities).
       
+    :param (str) search_query: Search query operator to use.
     :param (bool) older_tweets:
     If True (default), it will return the iterator containing older tweets.
     If False, it will return newer tweets on each iteration.
@@ -55,10 +56,12 @@ from kayak import KayakClient
 client = KayakClient()
 ```
 
+###### Refer to the API documentation [Query operators](https://dev.twitter.com/rest/public/search) to create your custom search query.
+
 ### To collect old tweets (that have been created in past)
 
 ```python
-old_tweets_iterator = client.get_tweets()
+old_tweets_iterator = client.get_tweets('#custserv')
 
 for tweets in old_tweets_iterator:
 	for tweet in tweets:
@@ -73,7 +76,7 @@ for tweets in old_tweets_iterator:
 ```python
 import time
 
-new_tweets_iterator = client.get_tweets(older_tweets=False)
+new_tweets_iterator = client.get_tweets('custserv', older_tweets=False)
 
 # Ideally, to avoid raising Exception
 # one should wait in between successive iterations
@@ -88,6 +91,12 @@ while True:
 
 	time.sleep(60)
 ```
+
+### Tweet Filteration
+
+This version of *kayak* will look for tweets having more than 1 retweets.
+
+#### Custom Filter Function
 
 --
 

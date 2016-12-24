@@ -27,9 +27,6 @@ VERIFICATION_VALUE = 'bearer'
 # key name associated with the token
 TOKEN_KEY = 'access_token'
 
-# hashtag to look for
-HASHTAG = '#custserv'
-
 # minimum number of re-tweets required
 RETWEET_THRESHOLD = 1
 
@@ -62,7 +59,6 @@ __all__ = [
     VERIFICATION_KEY,
     VERIFICATION_VALUE,
     TOKEN_KEY,
-    HASHTAG,
     RETWEET_THRESHOLD,
     SEARCH_API_URL,
     TWEET_TEXT_KEY,

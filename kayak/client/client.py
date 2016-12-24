@@ -7,7 +7,7 @@ This module implements the client's public and private interface.
 import os
 from kayak import constants
 from kayak.auth import KayakAuth
-from tweet import KayakTweet
+import tweet
 import kayak.utils as utils
 
 
@@ -56,21 +56,71 @@ class KayakClient(object):
         # update the token
         self.bearer_token = self.auth.authenticate()
 
-    def get_tweets(self, older_tweets=True):
+    def get_tweets(self, search_query, older_tweets=True):
         """
         Returns an iterator for Twitter API responses (tweet entities).
 
+        :param (str) search_query: Search query operator to use.
         :param (bool) older_tweets:
         If True (default), it will return the iterator containing older tweets.
         If False, it will return newer tweets on each iteration.
         """
 
-        return KayakClientResponseIterator(self.bearer_token, older_tweets)
+        if type(search_query) is not str:
+            raise TypeError('search_query should be a string')
+
+        return KayakClientResponseIterator(self.bearer_token, search_query, older_tweets)
+
+
+class KayakClientResponseIterator(object):
+    """
+    Class provides response iterator for Twitter API responses.
+    Can be used to fetch new or old tweets per iteration.
+    """
+
+    def __init__(self, bearer_token, search_query, older_tweets):
+        self.bearer_token = bearer_token
+
+        self.search_query = search_query
+        self.older_tweets = older_tweets
+
+        # to work with Twitter timelines (continuously populated tweets)
+        # https://dev.twitter.com/rest/public/timelines
+        self.since_id = None
+        self.max_id = None
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        # determine the suitable variable (since_id / max_id)
+        # to use as request parameter using the direction
+        _id = self.max_id if self.older_tweets else self.since_id
+        _param_key = constants.TWEET_MAX_ID if self.older_tweets else constants.TWEET_SINCE_ID
+
+        # initial execution
+        if _id is None:
+            res = utils.make_api_search_request(self.bearer_token, self.search_query)
+        else:
+            # using the suitable varialbe value saved from past executions
+            params = {_param_key: _id}
+            res = utils.make_api_search_request(
+                self.bearer_token, self.search_query, extra_params=params)
+
+        kayak_client_res = KayakClientResponse(res)
+
+        # update the suitable limiting (first or last) id variable
+        if self.older_tweets:
+            self.max_id = kayak_client_res.last_tweet_id
+        else:
+            self.since_id = kayak_client_res.first_tweet_id
+
+        return iter(kayak_client_res)
 
 
 class KayakClientResponse(object):
     """
-    Base class to represent client response.
+    Base class to represent and manipulate client response.
     """
 
     def __init__(self, response):
@@ -107,60 +157,8 @@ class KayakClientResponse(object):
         Checks if a tweet object matches the given criteria or not.
         """
 
-        # TODO: use 'filter'(built-in) based implementation
-
-        _filtered_tweets = []
-
-        for status in self.statuses:
-            if (status[constants.TWEET_RETWEET_KEY] >= constants.RETWEET_THRESHOLD):
-                _filtered_tweets.append(status)
-
-        self.statuses = _filtered_tweets
+        self.statuses = filter(lambda x: x[constants.TWEET_RETWEET_KEY] >= constants.RETWEET_THRESHOLD, self.statuses)
 
     def __iter__(self):
         for status in self.statuses:
-            yield KayakTweet(status)
-
-
-class KayakClientResponseIterator(object):
-    """
-    Class provides response iterator for Twitter API responses.
-    Can be used to fetch new or old tweets per iteration.
-    """
-
-    def __init__(self, bearer_token, older_tweets):
-        self.older_tweets = older_tweets
-        self.bearer_token = bearer_token
-
-        # to work with Twitter timelines (continuously populated tweets)
-        # https://dev.twitter.com/rest/public/timelines
-        self.since_id = None
-        self.max_id = None
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        # determine the suitable variable (since_id / max_id)
-        # to use as request parameter using the direction
-        _id = self.max_id if self.older_tweets else self.since_id
-        _param_key = constants.TWEET_MAX_ID if self.older_tweets else constants.TWEET_SINCE_ID
-
-        # initial execution
-        if _id is None:
-            res = utils.make_api_search_request(self.bearer_token)
-        else:
-            # using the suitable varialbe value saved from past executions
-            params = {_param_key: _id}
-            res = utils.make_api_search_request(
-                self.bearer_token, extra_params=params)
-
-        kayak_client_res = KayakClientResponse(res)
-
-        # update the suitable limiting (first or last) id variable
-        if self.older_tweets:
-            self.max_id = kayak_client_res.last_tweet_id
-        else:
-            self.since_id = kayak_client_res.first_tweet_id
-
-        return iter(kayak_client_res)
+            yield tweet.KayakTweet(status)
