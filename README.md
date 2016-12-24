@@ -39,7 +39,7 @@ It will make the package available in your local environment.
 The package exports **KayakClient** class to use, it defines the following method.
 
 ```
-get_tweets(search_query, older_tweets=True)
+get_tweets(search_query, minimum_retweet=1, older_tweets=True)
     Returns an iterator for Twitter API responses (tweet entities).
 
     :param (str) search_query: Search query operator to use.
@@ -102,11 +102,9 @@ while True:
 
 ### Tweet Filteration
 
-This version of *kayak* will look for tweets having more than 1 retweets.
-
 #### Custom Filter Function
 
-
+[TODO](https://github.com/pravj/kayak/blob/master/TODO.md)
 
 --
 
