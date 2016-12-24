@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='kayak',
-      version='0.0.9.dev.l',
+      version='0.0.9.dev.m',
       description='A customizable Twitter client to collect tweets matching certain criteria',
       url='http://github.com/pravj/kayak',
       author='Pravendra Singh',
