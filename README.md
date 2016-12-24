@@ -40,7 +40,7 @@ The package exports **KayakClient** class to use, it defines the following metho
 
 ```
 get_tweets(search_query, minimum_retweet=1, older_tweets=True)
-    Returns an iterator for Twitter API responses (tweet entities).
+    Returns an iterator for Twitter API responses (tweet entities i.e. KayakTweet).
 
     :param (str) search_query: Search query operator to use.
 
@@ -51,6 +51,22 @@ get_tweets(search_query, minimum_retweet=1, older_tweets=True)
         If True (default), it will return the iterator with older tweets.
         If False, it will return newer tweets on each iteration.
 ```
+
+The class **KayakTweet** provides following variables of a tweet.
+
+* text : Tweet text
+* id : ID of the Tweet
+* retweets : Number of retweets
+
+```
+class KayakTweet(object):
+    """
+    Class to change the representation of a Tweet object.
+    Currently you can access the 'text', 'id', and 'retweet count' attributes.
+    """
+```
+
+--
 
 Create a client instance.
 
